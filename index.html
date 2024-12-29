@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج تحويل لغة الإشارة</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>برنامج تحويل لغة الإشارة</h1>
+    </header>
+
+    <div class="container">
+        <h2>رفع الفيديو الخاص بك:</h2>
+        <input type="file" id="videoFile" accept="video/*">
+        
+        <div class="button-container">
+            <button onclick="processVideo()">تحويل الفيديو إلى نص</button>
+        </div>
+
+        <video id="videoElement" controls></video>
+        <div id="result">النص سيظهر هنا...</div>
+    </div>
+
+    <script>
+        const videoFileInput = document.getElementById('videoFile');
+        const videoElement = document.getElementById('videoElement');
+        const resultElement = document.getElementById('result');
+
+        videoFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const videoURL = URL.createObjectURL(file);
+            videoElement.src = videoURL;
+        });
+
+        function processVideo() {
+            // رفع الفيديو إلى السيرفر
+            const formData = new FormData();
+            const videoFile = videoFileInput.files[0];
+            formData.append('video', videoFile);
+            
+            fetch('/process_video', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.text) {
+                    resultElement.textContent =' تم تحويل الفيديو بنجاح إلى نص: ${data.text}';
+                } else {
+                    resultElement.textContent = 'حدث خطأ في المعالجة.';
+                }
+            })
+            .catch(error => {
+                resultElement.textContent = 'حدث خطأ في الاتصال بالخادم.';
+            });
+        }
+    </script>
+</body>
+</html>
